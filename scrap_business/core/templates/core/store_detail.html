@@ -1,0 +1,267 @@
+.{% extends 'core/base.html' %}
+{% load dict_tags %}
+{% block content %}
+    <div class="container">
+        <div class="header">
+            <h2>{{ store.name }} - Current Stock: {{ current_stock.stock_number }}</h2>
+            <div class="header-actions">
+                <a href="{% url 'dashboard' %}" class="btn btn-back"><i class="fas fa-arrow-left"></i> Back </a>
+                {% if php_dashboard_url %}
+                    <a href="{{ php_dashboard_url }}" class="btn btn-php-dashboard"><i class="fas fa-home"></i> PHP Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card">
+            <h3>Summary</h3>
+            <p>Total Weight: {{ total_weight|floatformat:2 }} kg</p>
+            <p>Total Revenue: KSH {{ total_revenue|floatformat:2 }}</p>
+            <p>Total Expenses: KSH {{ total_expenses|floatformat:2 }}</p>
+            <p>Total Profit: KSH {{ total_profit|floatformat:2 }}</p>
+        </div>
+        <div class="card">
+            <h3>Actions</h3>
+            <a href="{% url 'add_entry' current_stock.id %}" class="btn btn-add"><i class="fas fa-plus"></i> Add Entry</a>
+            <a href="{% url 'add_expense' store.id %}" class="btn btn-add"><i class="fas fa-plus"></i> Add Expense</a>
+            <a href="{% url 'clear_stock' current_stock.id %}" class="btn btn-remove"><i class="fas fa-trash"></i> Clear Stock</a>
+        </div>
+        <h3>Scrap Entries</h3>
+        {% if entries %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            {% for scrap_type, label in scrap_types %}
+                                <th>{{ label }}</th>
+                            {% endfor %}
+                            <th>Amount Given</th>
+                            <th>Balance</th>
+                            <th>Amount Used</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in entries %}
+                            <tr>
+                                <td>{{ entry.date }}</td>
+                                {% for scrap_type, _ in scrap_types %}
+                                    <td>{{ entry.weights|dict_get:scrap_type|default:0|floatformat:2 }}</td>
+                                {% endfor %}
+                                <td>{{ entry.amount_given|default:0|floatformat:2 }}</td>
+                                <td>{{ entry.balance|default:0|floatformat:2 }}</td>
+                                <td>{{ entry.amount_used|default:0|floatformat:2 }}</td>
+                                <td><a href="{% url 'edit_entry' entry.id %}" class="btn btn-edit"><i class="fas fa-edit"></i> Edit</a></td>
+                            </tr>
+                        {% endfor %}
+                        <tr class="totals-row">
+                            <td>Totals</td>
+                            {% for scrap_type, _ in scrap_types %}
+                                <td>{{ entries|sum_weights:scrap_type|default:0|floatformat:2 }}</td>
+                            {% endfor %}
+                            <td>{{ entries|sum_field:'amount_given'|default:0|floatformat:2 }}</td>
+                            <td>{{ entries|sum_field:'balance'|default:0|floatformat:2 }}</td>
+                            <td>{{ entries|sum_field:'amount_used'|default:0|floatformat:2 }}</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No entries yet. <a href="{% url 'add_entry' current_stock.id %}" class="btn btn-add"><i class="fas fa-plus"></i> Add Entry</a></p>
+        {% endif %}
+        <h3>Expenses</h3>
+        {% if expenses %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Amount (KSH)</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                            <tr>
+                                <td>{{ expense.description }}</td>
+                                <td>{{ expense.amount|floatformat:2 }}</td>
+                                <td>{{ expense.date }}</td>
+                                <td>
+                                    <a href="{% url 'edit_expense' expense.id %}" class="btn btn-edit"><i class="fas fa-edit"></i> Edit</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        <tr class="totals-row">
+                            <td>Totals</td>
+                            <td>{{ expenses|sum_field:'amount'|default:0|floatformat:2 }}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No expenses recorded. <a href="{% url 'add_expense' store.id %}" class="btn btn-add"><i class="fas fa-plus"></i> Add Expense</a></p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f1f3f5;
+            color: #212529;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1280px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg,rgb(41, 63, 86),rgb(38, 39, 41));
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .card {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 1.2rem;
+            color: #374151;
+        }
+        .table-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            padding: 0;
+        }
+        .table-container table {
+            width: 90%;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.8rem;
+        }
+        .table th, .table td {
+            padding: 6px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .table th {
+            background-color: #f3f4f6;
+            color: #374151;
+            font-weight: 500;
+        }
+        .table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        .totals-row {
+            font-weight: bold;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: background-color 0.3s;
+        }
+        .btn-add {
+            background-color: #212529;
+            color: #fff;
+        }
+        .btn-add:hover {
+            background-color:rgb(20, 22, 24);
+        }
+        .btn-edit {
+            background-color: #212529;
+            color: #fff;
+        }
+        .btn-edit:hover {
+            background-color:rgb(25, 27, 29);
+        }
+        .btn-remove {
+            background-color: #ef4444;
+            color: #fff;
+        }
+        .btn-remove:hover {
+            background-color: #dc2626;
+        }
+        .btn-back, .btn-php-dashboard {
+            background-color: #6b7280;
+            color: #fff;
+        }
+        .btn-back:hover, .btn-php-dashboard:hover {
+            background-color: #374151;
+        }
+        .dark-theme {
+            background-color: #1f2937;
+            color: #d1d5db;
+        }
+        .dark-theme .container, .dark-theme .card {
+            background-color: #374151;
+        }
+        .dark-theme .header {
+            background: linear-gradient(90deg, #374151, #4b5563);
+        }
+        .dark-theme .table th {
+            background-color: #1f2937;
+            color: #d1d5db;
+        }
+        .dark-theme .table tbody tr:hover {
+            background-color: #4b5563;
+        }
+        .dark-theme .btn-add {
+            background-color: #212529;
+        }
+        .dark-theme .btn-add:hover {
+            background-color:rgb(20, 21, 23);
+        }
+        .dark-theme .btn-edit {
+            background-color: #212529;
+        }
+        .dark-theme .btn-edit:hover {
+            background-color:rgb(19, 20, 21);
+        }
+        .dark-theme .btn-remove {
+            background-color: #dc2626;
+        }
+        .dark-theme .btn-remove:hover {
+            background-color: #b91c1c;
+        }
+        .dark-theme .btn-back, .dark-theme .btn-php-dashboard {
+            background-color: #6b7280;
+        }
+        .dark-theme .btn-back:hover, .dark-theme .btn-php-dashboard:hover {
+            background-color: #374151;
+        }
+    </style>
+{% endblock %}

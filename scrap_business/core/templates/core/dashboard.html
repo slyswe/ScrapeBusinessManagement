@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+{% block content %}
+    
+    {% if alerts %}
+        <h3>Alerts</h3>
+        {% for alert in alerts %}
+            <div class="alert">
+                {{ alert.message }} ({{ alert.created_at }})
+                <a href="{% url 'mark_alert_read' alert.id %}" class="btn">Mark as Read</a>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <h3>Store Summaries (Active Stocks)</h3>
+    {% if store_summaries %}
+        {% for summary in store_summaries %}
+            <div class="card">
+                <h3>{{ summary.store.name }} ({{ summary.store.location }})</h3>
+                <p>Total Weight: {{ summary.total_weight }} kg</p>
+                <p>Revenue: KSH {{ summary.total_revenue }}</p>
+                <p>Expenses: KSH {{ summary.total_expenses }}</p>
+                <p>Profit: KSH {{ summary.total_profit }}</p>
+                <a href="{% url 'store_detail' summary.store.id %}" class="btn">View Details</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No stores available. <a href="{% url 'add_store' %}" class="btn">Add a Store</a></p>
+    {% endif %}
+    <h3>Overall Financial Summary</h3>
+    <div class="card">
+        <p>Total Revenue: KSH {{ total_revenue_all }}</p>
+        <p>Total Expenses: KSH {{ total_expenses_all }}</p>
+        <p>Net Profit: KSH {{ net_profit_all }}</p>
+    </div>
+{% endblock %}

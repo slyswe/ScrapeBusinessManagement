@@ -1,0 +1,16 @@
+{% extends 'core/base.html' %}
+{% block content %}
+    <h2>Update Selling Prices</h2>
+    <form method="post">
+        {% csrf_token %}
+        <label for="scrap_type">Scrap Type:</label>
+        <select name="scrap_type" id="scrap_type" required>
+            {% for scrap_type in scrap_types %}
+                <option value="{{ scrap_type.id }}">{{ scrap_type.name }} (Current: {{ scrap_type.selling_price }} KSH)</option>
+            {% endfor %}
+        </select>
+        <label for="selling_price">New Price (KSH):</label>
+        <input type="number" step="0.01" name="selling_price" id="selling_price" required>
+        <button type="submit">Update</button>
+    </form>
+{% endblock %}

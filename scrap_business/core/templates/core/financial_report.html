@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% block content %}
+    <h2>Financial Report</h2>
+    <form method="get" action="">
+        <label for="date_from">From:</label>
+        <input type="date" id="date_from" name="date_from" value="{{ date_from }}">
+        <label for="date_to">To:</label>
+        <input type="date" id="date_to" name="date_to" value="{{ date_to }}">
+        <label for="store">Store:</label>
+        <select id="store" name="store">
+            <option value="">All</option>
+            {% for store in stores %}
+                <option value="{{ store.id }}" {% if selected_store == store.id|stringformat:"s" %}selected{% endif %}>
+                    {{ store.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+    <div class="card">
+        <h3>Summary</h3>
+        <p>Total Revenue: KSH {{ total_revenue|floatformat:2 }}</p>
+        <p>Total Expenses: KSH {{ total_expenses|floatformat:2 }}</p>
+        <p>Net Profit: KSH {{ net_profit|floatformat:2 }}</p>
+        <p>Revenue Growth: {{ revenue_growth }}%</p>
+    </div>
+    <h3>Store Breakdown</h3>
+    {% for item in store_breakdown %}
+        <div class="card">
+            <h4>{{ item.store.name }} ({{ item.store.location }}) - Stock: {{ item.stock.stock_number }}</h4>
+            <p>Revenue: KSH {{ item.revenue|floatformat:2 }}</p>
+            <p>Expenses: KSH {{ item.expenses|floatformat:2 }}</p>
+            <p>Profit: KSH {{ item.profit|floatformat:2 }}</p>
+        </div>
+    {% endfor %}
+{% endblock %}

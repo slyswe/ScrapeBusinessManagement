@@ -1,0 +1,17 @@
+{% extends 'core/base.html' %}
+{% block content %}
+    <h2>Add Expense for {{ store.name }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.amount.label_tag }} {{ form.amount }}
+        {{ form.description.label_tag }} {{ form.description }}
+        {{ form.date.label_tag }}
+        <input type="date" name="date" id="{{ form.date.id_for_label }}" value="{{ form.date.value|date:'Y-m-d' }}" required>
+        {% if form.date.errors %}
+            {% for error in form.date.errors %}
+                <p class="error">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+        <button type="submit">Add Expense</button>
+    </form>
+{% endblock %}

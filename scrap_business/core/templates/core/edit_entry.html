@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% load dict_tags %}
+{% block content %}
+    <h2>Edit Entry for Stock {{ stock.stock_number }} on {{ entry.date }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            <div class="alert">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+        {{ form.date.label_tag }} {{ form.date }}
+        {% for scrap_type, label in scrap_types %}
+            <label for="id_{{ scrap_type }}">{{ label }} (kg):</label>
+            <input type="number" step="0.1" name="{{ scrap_type }}" id="id_{{ scrap_type }}" value="{{ form.initial|dict_get:scrap_type|default:0 }}" required>
+        {% endfor %}
+        {{ form.entered_amount_given.label_tag }} {{ form.entered_amount_given }}
+        {{ form.balance.label_tag }} {{ form.balance }}
+        <button type="submit">Save Changes</button>
+        <button type="submit" name="delete" value="delete" style="background-color: red; color: white;">Delete Entry</button>
+        <a href="{% url 'store_detail' stock.store.id %}" class="btn">Cancel</a>
+    </form>
+{% endblock %}
