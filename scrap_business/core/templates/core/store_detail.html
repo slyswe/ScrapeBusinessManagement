@@ -23,6 +23,10 @@
             <a href="{% url 'add_entry' current_stock.id %}" class="btn btn-add"><i class="fas fa-plus"></i> Add Entry</a>
             <a href="{% url 'add_expense' store.id %}" class="btn btn-add"><i class="fas fa-plus"></i> Add Expense</a>
             <a href="{% url 'clear_stock' current_stock.id %}" class="btn btn-remove"><i class="fas fa-trash"></i> Clear Stock</a>
+            <div class="export-actions" style="margin-top: 10px;">
+                <a href="{% url 'export_entries_pdf' store.id current_stock.id %}" class="btn btn-export"><i class="fas fa-file-pdf"></i> Export as PDF</a>
+                <a href="{% url 'export_entries_csv' store.id current_stock.id %}" class="btn btn-export"><i class="fas fa-file-csv"></i> Export as CSV</a>
+            </div>
         </div>
         <h3>Scrap Entries</h3>
         {% if entries %}
@@ -221,6 +225,19 @@
         }
         .btn-back:hover, .btn-php-dashboard:hover {
             background-color: #374151;
+        }
+        .btn-export {
+            background-color: #212529;
+            color: #fff;
+        }
+        .btn-export:hover {
+            background-color:rgb(20, 22, 24);
+        }
+        
+        .export-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         .dark-theme {
             background-color: #1f2937;

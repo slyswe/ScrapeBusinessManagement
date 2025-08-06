@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import export_entries_pdf, export_entries_csv
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -14,4 +15,6 @@ urlpatterns = [
     path('mark-alert-read/<int:alert_id>/', views.mark_alert_read, name='mark_alert_read'),
     path('edit-entry/<int:entry_id>/', views.edit_entry, name='edit_entry'),
     path('expense/<int:expense_id>/edit/', views.edit_expense, name='edit_expense'),
+    path('store/<int:store_id>/stock/<int:stock_id>/export-pdf/', export_entries_pdf, name='export_entries_pdf'),
+    path('store/<int:store_id>/stock/<int:stock_id>/export-csv/', export_entries_csv, name='export_entries_csv'),
 ]

@@ -11,6 +11,11 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 from datetime import timedelta
 from django.conf import settings  # Import settings for PHP dashboard URL
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+import csv
+from io import StringIO
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -229,6 +234,61 @@ def export_financial_report(request):
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="financial_report.pdf"'
+    return response
+
+@login_required
+def export_entries_pdf(request, store_id, stock_id):
+    store = get_object_or_404(Store, id=store_id)
+    current_stock = get_object_or_404(Stock, id=stock_id)
+    entries = StockEntry.objects.filter(stock=current_stock).order_by('date')
+    expenses = Expense.objects.filter(store=store).order_by('date')
+    
+    # Use the SCRAP_TYPES constant from models.py
+    from .models import SCRAP_TYPES
+    scrap_types = SCRAP_TYPES
+    
+    context = {
+        'store': store,
+        'current_stock': current_stock,
+        'entries': entries,
+        'expenses': expenses,
+        'scrap_types': scrap_types,
+    }
+    
+    template = get_template('core/export_pdf.html')
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{store.name}_stock_{current_stock.stock_number}_report.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('We had some errors generating the PDF')
+    return response
+
+@login_required
+def export_entries_csv(request, store_id, stock_id):
+    store = get_object_or_404(Store, id=store_id)
+    current_stock = get_object_or_404(Stock, id=stock_id)
+    entries = StockEntry.objects.filter(stock=current_stock).order_by('date')
+    expenses = Expense.objects.filter(store=store).order_by('date')
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{store.name}_stock_{current_stock.stock_number}.csv"'
+    
+    writer = csv.writer(response)
+    
+    # Write headers
+    writer.writerow(['Date'] + [label for scrap_type, label in SCRAP_TYPES] + ['Amount Given', 'Balance', 'Amount Used'])
+    
+    # Write data
+    for entry in entries:
+        row = [entry.date]
+        for scrap_type, _ in SCRAP_TYPES:
+            row.append(entry.weights.get(scrap_type, 0))
+        row.extend([entry.amount_given, entry.balance, entry.amount_used])
+        writer.writerow(row)
+    
     return response
 
 @login_required

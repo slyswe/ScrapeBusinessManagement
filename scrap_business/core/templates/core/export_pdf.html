@@ -1,0 +1,115 @@
+{% load dict_tags %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ store.name }} - Stock {{ current_stock.stock_number }} Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        h1 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        h2 {
+            font-size: 14px;
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .totals-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+        .store-info {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="store-info">
+        <h1>{{ store.name }}</h1>
+        <p><strong>Stock Number:</strong> {{ current_stock.stock_number }}</p>
+        <p><strong>Report Date:</strong> {% now "SHORT_DATETIME_FORMAT" %}</p>
+    </div>
+
+    <h2>Scrap Entries</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                {% for scrap_type, label in scrap_types %}
+                    <th>{{ label }}</th>
+                {% endfor %}
+                <th>Amount Given</th>
+                <th>Balance</th>
+                <th>Amount Used</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+                <tr>
+                    <td>{{ entry.date|date:"Y-m-d" }}</td>
+                    {% for scrap_type, _ in scrap_types %}
+                        <td>{{ entry.weights|dict_get:scrap_type|default:0|floatformat:2 }}</td>
+                    {% endfor %}
+                    <td>{{ entry.amount_given|default:0|floatformat:2 }}</td>
+                    <td>{{ entry.balance|default:0|floatformat:2 }}</td>
+                    <td>{{ entry.amount_used|default:0|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+            <tr class="totals-row">
+                <td>Totals</td>
+                {% for scrap_type, _ in scrap_types %}
+                    <td>{{ entries|sum_weights:scrap_type|default:0|floatformat:2 }}</td>
+                {% endfor %}
+                <td>{{ entries|sum_field:'amount_given'|default:0|floatformat:2 }}</td>
+                <td>{{ entries|sum_field:'balance'|default:0|floatformat:2 }}</td>
+                <td>{{ entries|sum_field:'amount_used'|default:0|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Expenses</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount (KSH)</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+                <tr>
+                    <td>{{ expense.description }}</td>
+                    <td>{{ expense.amount|floatformat:2 }}</td>
+                    <td>{{ expense.date|date:"Y-m-d" }}</td>
+                </tr>
+            {% endfor %}
+            <tr class="totals-row">
+                <td>Total</td>
+                <td>{{ expenses|sum_field:'amount'|default:0|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
